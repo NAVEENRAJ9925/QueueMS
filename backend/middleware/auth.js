@@ -1,14 +1,38 @@
 import admin from 'firebase-admin';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Parse the Firebase service account from environment variable
-const serviceAccount = JSON.parse(
-  process.env.SERVICE_ACCOUNT_KEY.replace(/\\n/g, '\n')
-);
+// Get __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Parse service account JSON from environment variable
+const serviceAccountEnv = process.env.SERVICE_ACCOUNT_KEY;
+
+if (!serviceAccountEnv) {
+  throw new Error('SERVICE_ACCOUNT_KEY environment variable not found!');
+}
+
+let serviceAccount;
+try {
+  serviceAccount = JSON.parse(serviceAccountEnv);
+} catch (err) {
+  console.error('Failed to parse SERVICE_ACCOUNT_KEY JSON:', err);
+  throw err;
+}
+
+// Fix newlines in private key
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+
+// Write temporary JSON file
+const tempPath = __dirname + '/tempServiceAccount.json';
+fs.writeFileSync(tempPath, JSON.stringify(serviceAccount));
 
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(tempPath),
   });
 }
 
