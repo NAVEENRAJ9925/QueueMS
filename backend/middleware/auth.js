@@ -32,10 +32,9 @@ if (!admin.apps.length) {
 export const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
-
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = decodedToken;
@@ -51,10 +50,9 @@ export const isBusinessUser = async (req, res, next) => {
     const { uid } = req.user;
     const userRecord = await admin.auth().getUser(uid);
     if (userRecord.customClaims?.role === 'business') {
-      next();
-    } else {
-      res.status(403).json({ message: 'Forbidden: Business access required' });
+      return next();
     }
+    res.status(403).json({ message: 'Forbidden: Business access required' });
   } catch (error) {
     console.error('Error checking business role:', error);
     res.status(500).json({ message: 'Server error' });
@@ -66,10 +64,9 @@ export const isRegularUser = async (req, res, next) => {
     const { uid } = req.user;
     const userRecord = await admin.auth().getUser(uid);
     if (userRecord.customClaims?.role === 'user') {
-      next();
-    } else {
-      res.status(403).json({ message: 'Forbidden: User access required' });
+      return next();
     }
+    res.status(403).json({ message: 'Forbidden: User access required' });
   } catch (error) {
     console.error('Error checking user role:', error);
     res.status(500).json({ message: 'Server error' });

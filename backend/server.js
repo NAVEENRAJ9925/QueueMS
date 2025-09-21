@@ -2,8 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path, { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import fs from 'fs';
 import admin from 'firebase-admin';
 
@@ -61,9 +61,12 @@ if (process.env.NODE_ENV === 'production') {
   const frontendPath = join(__dirname, '../dist');
   app.use(express.static(frontendPath));
 
-  // Correct catch-all route for React SPA
-  app.get('/*', (req, res) => {
-    res.sendFile(join(frontendPath, 'index.html'));
+  // SPA fallback: catch any GET not under /api without using explicit patterns
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api')) {
+      return res.sendFile(join(frontendPath, 'index.html'));
+    }
+    next();
   });
 }
 
