@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global dark black-based glass gradient background */
+:root {
+  --glass-primary: 255 115 179; /* pink */
+  --glass-secondary: 56 189 248; /* sky */
+  --glass-accent: 167 139 250; /* violet */
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+.app-gradient {
+  min-height: 100vh;
+  background: radial-gradient(1200px 800px at 10% 10%, rgba(var(--glass-primary) / 0.15), transparent 50%),
+              radial-gradient(1000px 700px at 90% 20%, rgba(var(--glass-secondary) / 0.15), transparent 50%),
+              radial-gradient(900px 700px at 50% 100%, rgba(var(--glass-accent) / 0.15), transparent 50%),
+              linear-gradient(135deg, rgba(0, 0, 0, 0.98), rgba(5, 5, 5, 0.98));
+  background-attachment: fixed;
+}
+
+/* Glass utility classes (works alongside Tailwind) */
+.glass {
+  background: linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.04)
+    );
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glass-dark {
+  background: linear-gradient(
+      to bottom right,
+      rgba(0, 0, 0, 0.8),
+      rgba(0, 0, 0, 0.6)
+    );
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.neon-shadow {
+  box-shadow:
+    0 10px 30px rgba(56, 189, 248, 0.2),
+    0 2px 6px rgba(255, 115, 179, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.glass-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 20px 40px rgba(167, 139, 250, 0.3),
+    0 6px 12px rgba(56, 189, 248, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.transition-transform-shadow {
+  transition: transform 200ms ease, box-shadow 250ms ease;
+}
