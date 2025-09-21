@@ -2,12 +2,15 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path, { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 // Routes
 import queueRoutes from './routes/queueRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+
+// Firebase Auth Middleware
+import { verifyToken } from './middleware/auth.js';
 
 // Initialize
 dotenv.config();
@@ -22,20 +25,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Database Connection
-mongoose.connect("mongodb://127.0.0.1:27017/smartqueue")
+mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/smartqueue")
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
 // API Routes
-app.use('/api/queues', queueRoutes);
-app.use('/api/users', userRoutes);
+app.use('/api/queues', verifyToken, queueRoutes);
+app.use('/api/users', verifyToken, userRoutes);
 
-// Serve static assets in production
+// Serve static assets for frontend (React SPA)
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(join(__dirname, '../dist')));
-  
+  const frontendPath = join(__dirname, '../dist');
+  app.use(express.static(frontendPath));
+
+  // Catch-all route for SPA
   app.get('*', (req, res) => {
-    res.sendFile(join(__dirname, '../dist/index.html'));
+    res.sendFile(join(frontendPath, 'index.html'));
   });
 }
 
