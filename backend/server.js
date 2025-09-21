@@ -24,7 +24,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ------------------- MONGODB CONNECTION -------------------
-mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smartqueue')
+mongoose
+  .connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smartqueue')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -42,10 +43,7 @@ if (!admin.apps.length) {
     throw err;
   }
 
-  // Fix newlines in private key
   serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
-  // Write temporary JSON file
   const tempPath = join(__dirname, 'tempServiceAccount.json');
   fs.writeFileSync(tempPath, JSON.stringify(serviceAccount));
 
@@ -63,8 +61,8 @@ if (process.env.NODE_ENV === 'production') {
   const frontendPath = join(__dirname, '../dist');
   app.use(express.static(frontendPath));
 
-  // Catch-all route for React SPA
-  app.get('*', (req, res) => {
+  // Correct catch-all route for React SPA
+  app.get('/*', (req, res) => {
     res.sendFile(join(frontendPath, 'index.html'));
   });
 }
@@ -74,7 +72,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
+    error: process.env.NODE_ENV === 'development' ? err.message : {},
   });
 });
 

@@ -1,15 +1,12 @@
 import admin from 'firebase-admin';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 
-// Get __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Parse service account JSON from environment variable
 const serviceAccountEnv = process.env.SERVICE_ACCOUNT_KEY;
-
 if (!serviceAccountEnv) {
   throw new Error('SERVICE_ACCOUNT_KEY environment variable not found!');
 }
@@ -22,25 +19,19 @@ try {
   throw err;
 }
 
-// Fix newlines in private key
 serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
-// Write temporary JSON file
-const tempPath = __dirname + '/tempServiceAccount.json';
+const tempPath = join(__dirname, 'tempServiceAccount.json');
 fs.writeFileSync(tempPath, JSON.stringify(serviceAccount));
 
-// Initialize Firebase Admin SDK
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(tempPath),
   });
 }
 
-// Middleware to verify Firebase token
 export const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
@@ -48,7 +39,6 @@ export const verifyToken = async (req, res, next) => {
     const token = authHeader.split('Bearer ')[1];
     const decodedToken = await admin.auth().verifyIdToken(token);
     req.user = decodedToken;
-
     next();
   } catch (error) {
     console.error('Error verifying token:', error);
@@ -56,13 +46,11 @@ export const verifyToken = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is a business
 export const isBusinessUser = async (req, res, next) => {
   try {
     const { uid } = req.user;
     const userRecord = await admin.auth().getUser(uid);
-
-    if (userRecord.customClaims && userRecord.customClaims.role === 'business') {
+    if (userRecord.customClaims?.role === 'business') {
       next();
     } else {
       res.status(403).json({ message: 'Forbidden: Business access required' });
@@ -73,13 +61,11 @@ export const isBusinessUser = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is a regular user
 export const isRegularUser = async (req, res, next) => {
   try {
     const { uid } = req.user;
     const userRecord = await admin.auth().getUser(uid);
-
-    if (userRecord.customClaims && userRecord.customClaims.role === 'user') {
+    if (userRecord.customClaims?.role === 'user') {
       next();
     } else {
       res.status(403).json({ message: 'Forbidden: User access required' });
